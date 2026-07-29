@@ -30,10 +30,11 @@ export async function buscarIngestoes() {
     return result;
 }
 
-export async function addIngestao(horarioIngestao: string) {
+export async function addIngestao(quantidadeIngerida:number,horarioIngestao: string) {
     const db = await SQLite.openDatabaseAsync('arielDB.db');
 
     await db.runAsync(
-        'INSERT INTO ingestao (horario) VALUES (?);',[horarioIngestao] 
+        'INSERT INTO ingestao (horario) VALUES (?,?);',
+        [quantidadeIngerida,horarioIngestao] 
     );
 }
