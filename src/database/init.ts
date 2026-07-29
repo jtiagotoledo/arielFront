@@ -1,5 +1,11 @@
 import * as SQLite from 'expo-sqlite';
 
+export interface Ingestao {
+    id: number;
+    qnt_ml: number;
+    horario: string;
+}
+
 export async function initDatabase() {
     const db = await SQLite.openDatabaseAsync('arielDB.db');
 
@@ -21,9 +27,9 @@ export async function initDatabase() {
     return db;
 }
 
-export async function buscarIngestoes() {
+export async function buscarIngestoes():Promise<Ingestao[]> {
     const db = await SQLite.openDatabaseAsync('arielDB.db');
-    const result = await db.getAllAsync(
+    const result = await db.getAllAsync<Ingestao>(
            'SELECT * FROM ingestao;'
     );
     console.log('buscar ingestões: ', result);

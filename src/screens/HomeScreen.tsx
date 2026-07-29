@@ -1,46 +1,60 @@
 import { useEffect, useState } from "react";
-import { View, Text, TouchableHighlight, FlatList, StyleSheet } from 'react-native';
-import { initDatabase, addIngestao, buscarIngestoes } from "@/database/init";
+import { View, Text, TouchableHighlight, FlatList, StyleSheet, StatusBar } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { colors } from '../constants/colors'
+import { initDatabase, addIngestao, buscarIngestoes, Ingestao } from "@/database/init";
 
 export function HomeScreen() {
 
-    const[items, setItems] = useState<{horario:string, id: number, qnt_ml:string}[]>([])
+    const [items, setItems] = useState<Ingestao[]>([])
 
     useEffect(() => {
-        initDatabase();
-        const todasIngestoes = buscarIngestoes();
-        //setItems(todasIngestoes)
+        async function carregarDados() {
+            initDatabase();
+            const todasIngestoes = await buscarIngestoes();
+            setItems(todasIngestoes);
+        }
+        carregarDados();
     }, [])
 
-    const adicionarIngestao = () => {
+    const adicionarIngestao = async () => {
         addIngestao(200);
+        const todasIngestoes = await buscarIngestoes();
+        setItems(todasIngestoes);
     }
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.texto}>Beba Água!</Text>
-            <TouchableHighlight
-                style={styles.botao}
-                onPress={adicionarIngestao}
-                underlayColor='#ffffff'
-            >
-                <Text>Add</Text>
-            </TouchableHighlight>
-            <TouchableHighlight
-                style={styles.botao}
-                onPress={() => buscarIngestoes()}
-                underlayColor='#ffffff'
-            >
-                <Text>Buscar</Text>
-            </TouchableHighlight>
-            {/* <FlatList
-                data={ }
-                keyExtractor={ }
-
-            >
-
-            </FlatList> */}
-        </View>
+        <SafeAreaProvider>
+            <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+                <StatusBar barStyle='light-content'></StatusBar>
+                <View style={styles.header}>
+                    <Text style={styles.headerTitle}>Ariel</Text>
+                </View>
+                <View style={styles.container}>
+                    <Text style={styles.texto}>Beba Água!</Text>
+                    <TouchableHighlight
+                        style={styles.botao}
+                        onPress={adicionarIngestao}
+                        underlayColor='#ffffff'
+                    >
+                        <Text>Add</Text>
+                    </TouchableHighlight>
+                    <TouchableHighlight
+                        style={styles.botao}
+                        onPress={() => buscarIngestoes()}
+                        underlayColor='#ffffff'
+                    >
+                        <Text>Buscar</Text>
+                    </TouchableHighlight>
+                    <FlatList
+                        data={items}
+                        keyExtractor={(item) => item.id.toString()}
+                        renderItem={({ item }) => <Text>{item.horario}</Text>}
+                    >
+                    </FlatList>
+                </View>
+            </SafeAreaView>
+        </SafeAreaProvider>
     )
 }
 
@@ -49,9 +63,22 @@ export function HomeScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#3995EE',
+        backgroundColor: colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    header: {
+        height: 56,
+        width: '100%',
+        backgroundColor: colors.primary,
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 4,
+    },
+    headerTitle: {
+        color: '#ffffff',
+        fontSize: 18,
+        fontWeight: 'bold'
     },
     texto: {
         color: '#ffffff',
