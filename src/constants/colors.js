@@ -1,5 +1,9 @@
 export const colors = {
-    primary:'#3995EE',
-    light:'#ffffff',
-    dark:'#000000',
+    azul:'#3995EE',
+    branco:'#ffffff',
+    preto:'#000000',
+    cinza:'#F4F6F8',
+
+    textoCinza:'#9E9E9E',
+    textoAzul:'#64B5F6'
 };
