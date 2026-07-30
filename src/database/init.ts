@@ -3,6 +3,7 @@ import * as SQLite from 'expo-sqlite';
 export interface Ingestao {
     id: number;
     qnt_ml: number;
+    total_dia: number;
     horario: string;
 }
 
@@ -29,9 +30,17 @@ export async function initDatabase() {
 
 export async function buscarIngestoes():Promise<Ingestao[]> {
     const db = await SQLite.openDatabaseAsync('arielDB.db');
-    const result = await db.getAllAsync<Ingestao>(
-           'SELECT * FROM ingestao;'
-    );
+    const result = await db.getAllAsync<Ingestao>(`
+           SELECT 
+                id,
+                qnt_ml,
+                datetime(horario, '-3 hours') AS horario,
+                SUM(qnt_ml) OVER (
+                    PARTITION BY date(horario, '-3 hours')
+                ) AS total_dia
+           FROM ingestao
+           ORDER BY horario DESC;
+    `);
     console.log('buscar ingestões: ', result);
     return result;
 }

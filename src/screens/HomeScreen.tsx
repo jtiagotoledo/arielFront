@@ -17,18 +17,33 @@ export function HomeScreen() {
         carregarDados();
     }, [])
 
-    const adicionarIngestao = async () => {
-        addIngestao(200);
+    const adicionarIngestao = async (qnt:number) => {
+        addIngestao(qnt);
+        console.log('qnt',qnt);
+        
         const todasIngestoes = await buscarIngestoes();
         setItems(todasIngestoes);
     }
 
-    const renderItemIngestao = ({item}:{item:Ingestao}) => {
-        const normHor = item.horario.substring(11,16);
+    const renderItemIngestao = ({ item, index }: { item: Ingestao; index: number }) => {
+        const normHor = item.horario.substring(11, 16);
+        const dataAtual = item.horario.split(' ')[0];
+        const dataAnterior = index > 0 ? items[index - 1].horario.split(' ')[0] : null;
+
+        const separadorDias = dataAtual !== dataAnterior;
+
         return (
-            <View style={styles.itemLista}>
-                <Text style={styles.textoQnt}>{item.qnt_ml} ml</Text>
-                <Text style={styles.textoHor}>{normHor}</Text>
+            <View>
+                {separadorDias && (
+                    <View style={styles.itemSeparador}>
+                        <Text style={styles.textoSeparador}>📅  {dataAtual.split('-').reverse().join('/')}</Text>
+                        <Text style={styles.textoSeparador}>   💧{item.total_dia} ml</Text>
+                    </View>
+                )}
+                <View style={styles.itemLista}>
+                    <Text style={styles.textoQnt}>{item.qnt_ml} ml</Text>
+                    <Text style={styles.textoHor}>{normHor}</Text>
+                </View>
             </View>
         );
     };
@@ -41,21 +56,38 @@ export function HomeScreen() {
                     <Text style={styles.headerTitle}>Ariel - Beba Água!</Text>
                 </View>
                 <View style={styles.topSection}>
-                    <Text style={styles.texto}>Beba Água!</Text>
-                    <TouchableHighlight
-                        style={styles.botao}
-                        onPress={adicionarIngestao}
-                        underlayColor='#ffffff'
-                    >
-                        <Text>Add</Text>
-                    </TouchableHighlight>
-                    <TouchableHighlight
-                        style={styles.botao}
-                        onPress={() => buscarIngestoes()}
-                        underlayColor='#ffffff'
-                    >
-                        <Text>Buscar</Text>
-                    </TouchableHighlight>
+                    <Text style={styles.texto}>Meta Diária:</Text>
+                    <Text style={styles.texto}>2500 ml</Text>
+                    <View style={styles.containerBotao}>
+                        <TouchableHighlight
+                            style={styles.botao}
+                            onPress={()=>adicionarIngestao(50)}
+                            underlayColor='#ffffff'
+                        >
+                            <Text style={styles.textoBotao}>50 ml</Text>
+                        </TouchableHighlight>
+                        <TouchableHighlight
+                            style={styles.botao}
+                            onPress={()=>adicionarIngestao(100)}
+                            underlayColor='#ffffff'
+                        >
+                            <Text style={styles.textoBotao}>100 ml</Text>
+                        </TouchableHighlight>
+                        <TouchableHighlight
+                            style={styles.botao}
+                            onPress={()=>adicionarIngestao(200)}
+                            underlayColor='#ffffff'
+                        >
+                            <Text style={styles.textoBotao}>200 ml</Text>
+                        </TouchableHighlight>
+                        <TouchableHighlight
+                            style={styles.botao}
+                            onPress={()=>adicionarIngestao(400)}
+                            underlayColor='#ffffff'
+                        >
+                            <Text style={styles.textoBotao}>400 ml</Text>
+                        </TouchableHighlight>
+                    </View>
                 </View>
                 <View style={styles.bottomSection}>
                     <FlatList
@@ -65,7 +97,6 @@ export function HomeScreen() {
                     >
                     </FlatList>
                 </View>
-
             </SafeAreaView>
         </SafeAreaProvider>
     )
@@ -77,6 +108,12 @@ const styles = StyleSheet.create({
         backgroundColor: colors.azul,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    containerBotao: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 24,
     },
     header: {
         height: 56,
@@ -93,10 +130,16 @@ const styles = StyleSheet.create({
     },
     texto: {
         color: colors.branco,
+        fontSize: 30
+    },
+    textoBotao: {
+        fontSize: 18,
     },
     botao: {
         backgroundColor: colors.branco,
-        marginTop: 24,
+        margin: 8,
+        padding: 8,
+        borderRadius: 12
     },
     topSection: {
         flex: 4,
@@ -106,25 +149,38 @@ const styles = StyleSheet.create({
     },
     bottomSection: {
         flex: 6,
-        width:'100%',
-        backgroundColor:colors.cinza,
-        paddingTop:8,
+        width: '100%',
+        backgroundColor: colors.cinza,
+        paddingTop: 8,
     },
-    itemLista:{
-        flexDirection:'row',
-        height:65,
-        width:'100%',
-        alignSelf:'center',
-        justifyContent:'space-between',
-        backgroundColor:colors.branco,
-        padding:16,
+    itemLista: {
+        flexDirection: 'row',
+        height: 65,
+        width: '100%',
+        alignSelf: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: colors.branco,
+        padding: 16,
+    },
+    itemSeparador: {
+        flexDirection: 'row',
+        height: 65,
+        width: '100%',
+        alignSelf: 'center',
+        justifyContent: 'center',
+        backgroundColor: colors.branco,
+        padding: 16,
     },
     textoQnt: {
-        color:colors.textoAzul,
-        fontSize:18
+        color: colors.textoAzul,
+        fontSize: 18
     },
     textoHor: {
-        color:colors.textoCinza,
-        fontSize:18
+        color: colors.textoCinza,
+        fontSize: 18
+    },
+    textoSeparador: {
+        color: colors.textoPreto,
+        fontSize: 18
     },
 });
