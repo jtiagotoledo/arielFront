@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
 import { View, Text, TouchableHighlight, FlatList, StyleSheet, StatusBar } from 'react-native';
+
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+
 import { colors } from '../constants/colors'
 import { initDatabase, addIngestao, buscarIngestoes, Ingestao } from "@/database/init";
+import { Stepper } from "@/components/Stepper";
 
 export function HomeScreen() {
 
-    const [items, setItems] = useState<Ingestao[]>([])
-
+    const [items, setItems] = useState<Ingestao[]>([]);
+    const [meta, setMeta] = useState<number>(2500);
+    const [hAcordar, setHAcordar] = useState<number>(7);
+    const [hDormir, setHDormir] = useState<number>(20);
+    
     useEffect(() => {
         async function carregarDados() {
             initDatabase();
@@ -56,6 +62,14 @@ export function HomeScreen() {
                     <Text style={styles.headerTitle}>Ariel - Beba Água!</Text>
                 </View>
                 <View style={styles.topSection}>
+                    <Text style={styles.texto}>Configurações:</Text>
+                    <Stepper
+                        value={meta}
+                        min={500}
+                        max={5000}
+                        stepp={100}
+                        onChange={(novoValor)=>setMeta(novoValor)}
+                    />
                     <Text style={styles.texto}>Meta Diária:</Text>
                     <Text style={styles.texto}>2500 ml</Text>
                     <View style={styles.containerBotao}>
