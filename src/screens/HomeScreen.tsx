@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { View, Text, TouchableHighlight, FlatList, StyleSheet, StatusBar, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableHighlight, FlatList, StyleSheet, StatusBar, TouchableOpacity, Alert, Pressable } from 'react-native';
 
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 
 import { colors } from '../constants/colors'
-import { initDatabase, addIngestao, buscarIngestoes, Ingestao, buscarProfile } from "@/database/init";
+import { initDatabase, addIngestao, deletarIngestao, buscarIngestoes, Ingestao, buscarProfile } from "@/database/init";
 
 export function HomeScreen() {
 
@@ -15,12 +15,12 @@ export function HomeScreen() {
     const [items, setItems] = useState<Ingestao[]>([]);
     const [meta, setMeta] = useState<number>(2500);
     const [parcial, setParcial] = useState<number>(0);
-    
+
     useEffect(() => {
         async function carregarDados() {
             const profile = await buscarProfile();
-            if(profile){
-                const {meta_ml, consumo_parcial} = profile;
+            if (profile) {
+                const { meta_ml, consumo_parcial } = profile;
                 setMeta(meta_ml);
                 setParcial(consumo_parcial);
             }
@@ -31,13 +31,33 @@ export function HomeScreen() {
         carregarDados();
     }, [])
 
-    const adicionarIngestao = async (qnt:number) => {
+    const adicionarIngestao = async (qnt: number) => {
         addIngestao(qnt);
-        console.log('qnt',qnt);
-        
+        console.log('qnt', qnt);
+
         const todasIngestoes = await buscarIngestoes();
         setItems(todasIngestoes);
     }
+
+    const handleLongPress = (id: number) => {
+        Alert.alert(
+            'Remover registo',
+            'Deseja remover esse registro?',
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Deletar', style: 'destructive',
+                    onPress: async () => {
+                        await deletarIngestao(id);
+                        const todasIngestoes = await buscarIngestoes();
+                        setItems(todasIngestoes);
+                        const profile = await buscarProfile();
+                        if (profile) setParcial(profile.consumo_parcial);
+                    }
+                },
+            ]
+        );
+    };
 
     const renderItemIngestao = ({ item, index }: { item: Ingestao; index: number }) => {
         const normHor = item.horario.substring(11, 16);
@@ -54,10 +74,13 @@ export function HomeScreen() {
                         <Text style={styles.textoSeparador}>   💧{item.total_dia} ml</Text>
                     </View>
                 )}
-                <View style={styles.itemLista}>
+                <Pressable
+                    style={styles.itemLista}
+                    onLongPress={() => handleLongPress(item.id)}
+                >
                     <Text style={styles.textoQnt}>{item.qnt_ml} ml</Text>
                     <Text style={styles.textoHor}>{normHor}</Text>
-                </View>
+                </Pressable>
             </View>
         );
     };
@@ -68,9 +91,9 @@ export function HomeScreen() {
                 <StatusBar barStyle='light-content'></StatusBar>
                 <View style={styles.header}>
                     <TouchableOpacity
-                        onPress={()=>router.push('/config')}
+                        onPress={() => router.push('/config')}
                     >
-                        <Ionicons name="settings-outline" color={colors.branco} size={28} style={{marginRight:20}}/>
+                        <Ionicons name="settings-outline" color={colors.branco} size={28} style={{ marginRight: 20 }} />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Ariel - Beba Água!</Text>
                 </View>
@@ -79,28 +102,28 @@ export function HomeScreen() {
                     <View style={styles.containerBotao}>
                         <TouchableHighlight
                             style={styles.botao}
-                            onPress={()=>adicionarIngestao(50)}
+                            onPress={() => adicionarIngestao(50)}
                             underlayColor={colors.branco}
                         >
                             <Text style={styles.textoBotao}>50 ml</Text>
                         </TouchableHighlight>
                         <TouchableHighlight
                             style={styles.botao}
-                            onPress={()=>adicionarIngestao(100)}
+                            onPress={() => adicionarIngestao(100)}
                             underlayColor={colors.branco}
                         >
                             <Text style={styles.textoBotao}>100 ml</Text>
                         </TouchableHighlight>
                         <TouchableHighlight
                             style={styles.botao}
-                            onPress={()=>adicionarIngestao(200)}
+                            onPress={() => adicionarIngestao(200)}
                             underlayColor={colors.branco}
                         >
                             <Text style={styles.textoBotao}>200 ml</Text>
                         </TouchableHighlight>
                         <TouchableHighlight
                             style={styles.botao}
-                            onPress={()=>adicionarIngestao(400)}
+                            onPress={() => adicionarIngestao(400)}
                             underlayColor={colors.branco}
                         >
                             <Text style={styles.textoBotao}>400 ml</Text>
@@ -131,16 +154,16 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: 24,
+        marginTop: 40,
     },
     header: {
-        flexDirection:'row',
+        flexDirection: 'row',
         height: 56,
         width: '100%',
         backgroundColor: colors.azul,
         alignItems: 'center',
         elevation: 4,
-        padding:12,
+        padding: 12,
     },
     headerTitle: {
         color: colors.branco,
