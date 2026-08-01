@@ -1,21 +1,29 @@
 import { useEffect, useState } from "react";
-import { View, Text, TouchableHighlight, FlatList, StyleSheet, StatusBar } from 'react-native';
+import { View, Text, TouchableHighlight, FlatList, StyleSheet, StatusBar, TouchableOpacity } from 'react-native';
 
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from "expo-router";
 
 import { colors } from '../constants/colors'
-import { initDatabase, addIngestao, buscarIngestoes, Ingestao } from "@/database/init";
-import { Stepper } from "@/components/Stepper";
+import { initDatabase, addIngestao, buscarIngestoes, Ingestao, buscarProfile } from "@/database/init";
 
 export function HomeScreen() {
 
+    const router = useRouter();
+
     const [items, setItems] = useState<Ingestao[]>([]);
     const [meta, setMeta] = useState<number>(2500);
-    const [hAcordar, setHAcordar] = useState<number>(7);
-    const [hDormir, setHDormir] = useState<number>(20);
+    const [parcial, setParcial] = useState<number>(0);
     
     useEffect(() => {
         async function carregarDados() {
+            const profile = await buscarProfile();
+            if(profile){
+                const {meta_ml, consumo_parcial} = profile;
+                setMeta(meta_ml);
+                setParcial(consumo_parcial);
+            }
             initDatabase();
             const todasIngestoes = await buscarIngestoes();
             setItems(todasIngestoes);
@@ -59,45 +67,41 @@ export function HomeScreen() {
             <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
                 <StatusBar barStyle='light-content'></StatusBar>
                 <View style={styles.header}>
+                    <TouchableOpacity
+                        onPress={()=>router.push('/config')}
+                    >
+                        <Ionicons name="settings-outline" color={colors.branco} size={28} style={{marginRight:20}}/>
+                    </TouchableOpacity>
                     <Text style={styles.headerTitle}>Ariel - Beba Água!</Text>
                 </View>
                 <View style={styles.topSection}>
-                    <Text style={styles.texto}>Configurações:</Text>
-                    <Stepper
-                        value={meta}
-                        min={500}
-                        max={5000}
-                        stepp={100}
-                        onChange={(novoValor)=>setMeta(novoValor)}
-                    />
-                    <Text style={styles.texto}>Meta Diária:</Text>
-                    <Text style={styles.texto}>2500 ml</Text>
+                    <Text style={styles.texto}>{parcial}/{meta} ml</Text>
                     <View style={styles.containerBotao}>
                         <TouchableHighlight
                             style={styles.botao}
                             onPress={()=>adicionarIngestao(50)}
-                            underlayColor='#ffffff'
+                            underlayColor={colors.branco}
                         >
                             <Text style={styles.textoBotao}>50 ml</Text>
                         </TouchableHighlight>
                         <TouchableHighlight
                             style={styles.botao}
                             onPress={()=>adicionarIngestao(100)}
-                            underlayColor='#ffffff'
+                            underlayColor={colors.branco}
                         >
                             <Text style={styles.textoBotao}>100 ml</Text>
                         </TouchableHighlight>
                         <TouchableHighlight
                             style={styles.botao}
                             onPress={()=>adicionarIngestao(200)}
-                            underlayColor='#ffffff'
+                            underlayColor={colors.branco}
                         >
                             <Text style={styles.textoBotao}>200 ml</Text>
                         </TouchableHighlight>
                         <TouchableHighlight
                             style={styles.botao}
                             onPress={()=>adicionarIngestao(400)}
-                            underlayColor='#ffffff'
+                            underlayColor={colors.branco}
                         >
                             <Text style={styles.textoBotao}>400 ml</Text>
                         </TouchableHighlight>
@@ -130,12 +134,13 @@ const styles = StyleSheet.create({
         marginTop: 24,
     },
     header: {
+        flexDirection:'row',
         height: 56,
         width: '100%',
         backgroundColor: colors.azul,
-        justifyContent: 'center',
         alignItems: 'center',
         elevation: 4,
+        padding:12,
     },
     headerTitle: {
         color: colors.branco,

@@ -39,7 +39,7 @@ export function Stepper({value, min, max, stepp, onChange, unit=''}:StepperProps
             </TouchableOpacity>
             <View style={styles.valueContainer}>
                 <Text style={styles.valueText}>
-                    {value} {unit}
+                    {value}{unit}
                 </Text>
             </View>
             <TouchableOpacity
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
         alignItems:'center',
     },
     buttonDisabled:{
-        backgroundColor:colors.cinza,
+        backgroundColor:colors.azulDisabled,
     },
     buttonText:{
         color:colors.branco,
