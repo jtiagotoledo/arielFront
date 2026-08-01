@@ -8,14 +8,12 @@
     "scheme": "arielfront",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#208AEF",
+        "foregroundImage": "./assets/images/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.anonymous.arielFront"
@@ -37,8 +35,8 @@
       [
         "expo-notifications",
         {
-          "icon":"./assets/expo.png",
-          "color":"#ffffff"
+          "icon": "./assets/images/icon.png",
+          "color": "#ffffff"
         }
       ],
       "expo-sqlite"
@@ -46,6 +44,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5107dee8-efb7-4054-9fc4-208fba20727b"
+      }
     }
   }
 }

@@ -18,15 +18,15 @@ export function HomeScreen() {
 
     useEffect(() => {
         async function carregarDados() {
+            initDatabase();
+            const todasIngestoes = await buscarIngestoes();
+            setItems(todasIngestoes);
             const profile = await buscarProfile();
             if (profile) {
                 const { meta_ml, consumo_parcial } = profile;
                 setMeta(meta_ml);
                 setParcial(consumo_parcial);
             }
-            initDatabase();
-            const todasIngestoes = await buscarIngestoes();
-            setItems(todasIngestoes);
         }
         carregarDados();
     }, [])
