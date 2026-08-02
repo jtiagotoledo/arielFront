@@ -1,47 +1,62 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { View, Text, TouchableHighlight, StyleSheet, StatusBar } from 'react-native';
-
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useSQLiteContext } from 'expo-sqlite';
 
-import { colors } from '../constants/colors'
+import { colors } from '../constants/colors';
 import { Stepper } from "@/components/Stepper";
-import { atualizarProfile, buscarProfile} from "@/database/init";
-
+import { atualizarProfile, buscarProfile } from "@/database/init";
+import { agendarNotificacao } from "@/services/notifications";
 
 export function ConfigScreen() {
-
     const router = useRouter();
+    const db = useSQLiteContext();
 
     const [meta, setMeta] = useState<number>(2500);
     const [hAcordar, setHAcordar] = useState<number>(7);
     const [hDormir, setHDormir] = useState<number>(20);
 
-    useEffect(() => {
-            async function carregarDados() {
-                const profile = await buscarProfile();
-                if(profile){
-                    const {meta_ml, hor_acordar, hor_dormir} = profile;
-                    setMeta(meta_ml);
-                    setHAcordar(hor_acordar);
-                    setHDormir(hor_dormir);
-                }
+    const carregarDados = useCallback(async () => {
+        try {
+            const profile = await buscarProfile(db);
+            if (profile) {
+                const { meta_ml, hor_acordar, hor_dormir } = profile;
+                setMeta(meta_ml);
+                setHAcordar(hor_acordar);
+                setHDormir(hor_dormir);
             }
-            carregarDados();
-        }, [])
+        } catch (error) {
+            console.error("Erro ao carregar configurações:", error);
+        }
+    }, [db]);
 
-    const handleSaveConfigs = async ()=>{
-        await atualizarProfile(meta,hAcordar,hDormir);
-        router.push('/');
-    }
+    useEffect(() => {
+        carregarDados();
+    }, [carregarDados]);
+
+    const handleSaveConfigs = async () => {
+        try {
+            await atualizarProfile(db, meta, hAcordar, hDormir);
+            await agendarNotificacao(hAcordar, hDormir);
+            if (router.canGoBack()) {
+                router.back();
+            } else {
+                router.replace('/');
+            }
+        } catch (error) {
+            console.error("Erro ao salvar configurações:", error);
+        }
+    };
 
     return (
         <SafeAreaProvider>
             <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-                <StatusBar barStyle='light-content'></StatusBar>
+                <StatusBar barStyle='light-content' />
                 <View style={styles.header}>
                     <Text style={styles.headerTitle}>Configurações</Text>
                 </View>
+                
                 <View style={styles.containerConfig}>
                     <View style={styles.fieldGroup}>
                         <Text style={styles.label}>Meta Diária (ml)</Text>
@@ -51,9 +66,10 @@ export function ConfigScreen() {
                             max={5000}
                             stepp={100}
                             unit="ml"
-                            onChange={(novoValor) => setMeta(novoValor)}
+                            onChange={setMeta}
                         />
                     </View>
+
                     <View style={styles.fieldGroup}>
                         <Text style={styles.label}>Horário de Acordar</Text>
                         <Stepper
@@ -62,9 +78,10 @@ export function ConfigScreen() {
                             max={23}
                             stepp={1}
                             unit=":00h"
-                            onChange={(novoValor) => setHAcordar(novoValor)}
+                            onChange={setHAcordar}
                         />
                     </View>
+
                     <View style={styles.fieldGroup}>
                         <Text style={styles.label}>Horário de Dormir</Text>
                         <Stepper
@@ -73,12 +90,13 @@ export function ConfigScreen() {
                             max={23}
                             stepp={1}
                             unit=':00h'
-                            onChange={(novoValor) => setHDormir(novoValor)}
+                            onChange={setHDormir}
                         />
                     </View>
+
                     <TouchableHighlight
                         style={styles.botao}
-                        onPress={() => handleSaveConfigs()}
+                        onPress={handleSaveConfigs}
                         underlayColor={colors.branco}
                     >
                         <Text style={styles.textoBotao}>Salvar e voltar</Text>
@@ -86,7 +104,7 @@ export function ConfigScreen() {
                 </View>
             </SafeAreaView>
         </SafeAreaProvider>
-    )
+    );
 }
 
 const styles = StyleSheet.create({
@@ -97,7 +115,9 @@ const styles = StyleSheet.create({
     },
     containerConfig: {
         flex: 1,
-        justifyContent: 'center'
+        justifyContent: 'center',
+        alignItems: 'center', 
+        width: '85%',
     },
     header: {
         height: 56,
@@ -110,29 +130,33 @@ const styles = StyleSheet.create({
     headerTitle: {
         color: colors.branco,
         fontSize: 18,
-        fontWeight: 'bold'
+        fontWeight: 'bold',
     },
     fieldGroup: {
         marginBottom: 24,
+        width: '100%',         
+        alignItems: 'center',  
     },
     label: {
         color: colors.branco,
         textAlign: 'center',
         fontSize: 14,
-        marginBottom: 6
+        marginBottom: 6,
     },
     textoBotao: {
         fontSize: 18,
-        color:colors.branco,
+        color: colors.branco,
         textAlign: 'center',
     },
     botao: {
         backgroundColor: colors.azul,
-        margin: 8,
-        padding: 8,
+        width: '100%',          
+        marginVertical: 8,
+        padding: 12,
         borderRadius: 12,
-        borderWidth:1,
-        elevation:4,
-        marginTop:24,
+        borderWidth: 1,
+        borderColor: colors.branco,
+        elevation: 4,
+        marginTop: 24,
     },
 });
