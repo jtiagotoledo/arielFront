@@ -51,7 +51,7 @@ export async function agendarNotificacao(hor_inicio:number,hor_fim:number){
             trigger:{
                 type: Notifications.SchedulableTriggerInputTypes.DAILY,
                 hour:hora,
-                minute:10,
+                minute:0,
             },
         });
     }

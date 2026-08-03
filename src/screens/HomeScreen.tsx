@@ -1,13 +1,13 @@
 import { useState, useCallback } from "react";
 import { View, Text, TouchableHighlight, FlatList, StyleSheet, StatusBar, TouchableOpacity, Alert, Pressable } from 'react-native';
-
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from "expo-router";
 import { useSQLiteContext } from 'expo-sqlite';
 
 import { colors } from '../constants/colors';
-import { addIngestao, deletarIngestao, buscarIngestoes, Ingestao, buscarProfile } from "@/database/init";
+import { addIngestao, deletarIngestao, buscarIngestoes, Ingestao, buscarProfile, atualizarIngestao } from "@/database/init";
+import { ModalEdicao } from "@/components/ModalEdicao";
 
 export function HomeScreen() {
     const router = useRouter();
@@ -16,6 +16,8 @@ export function HomeScreen() {
     const [items, setItems] = useState<Ingestao[]>([]);
     const [meta, setMeta] = useState<number>(2500);
     const [parcial, setParcial] = useState<number>(0);
+    const [itemParaEditar, setItemParaEditar] = useState<Ingestao | null>(null);
+    const [modalVisivel, setModalVisivel] = useState<boolean>(false);
 
     const carregarDadosTela = useCallback(async () => {
         try {
@@ -44,6 +46,24 @@ export function HomeScreen() {
         await carregarDadosTela();
     };
 
+    const abrirEdicao = useCallback((item: Ingestao) => {
+        setItemParaEditar(item);
+        setModalVisivel(true);
+    }, []);
+
+    const fecharEdicao = useCallback(() => {
+        setModalVisivel(false);
+        setItemParaEditar(null);
+    }, []);
+
+    const salvarEdicao = async (novaQuantidade: number, novoHorario: string) => {
+        if (itemParaEditar) {
+            await atualizarIngestao(db, itemParaEditar.id, novaQuantidade, novoHorario);
+            fecharEdicao();
+            await carregarDadosTela();
+        }
+    };
+
     const handleLongPress = useCallback((id: number) => {
         Alert.alert(
             'Remover registro',
@@ -54,7 +74,7 @@ export function HomeScreen() {
                     text: 'Deletar', style: 'destructive',
                     onPress: async () => {
                         await deletarIngestao(db, id);
-                        await carregarDadosTela(); 
+                        await carregarDadosTela();
                     }
                 },
             ]
@@ -78,6 +98,7 @@ export function HomeScreen() {
                 )}
                 <Pressable
                     style={styles.itemLista}
+                    onPress={() => abrirEdicao(item)}
                     onLongPress={() => handleLongPress(item.id)}
                 >
                     <Text style={styles.textoQnt}>{item.qnt_ml} ml</Text>
@@ -85,7 +106,7 @@ export function HomeScreen() {
                 </Pressable>
             </View>
         );
-    }, [items, handleLongPress]);
+    }, [items, handleLongPress, abrirEdicao]);
 
     return (
         <SafeAreaProvider>
@@ -123,6 +144,14 @@ export function HomeScreen() {
                         maxToRenderPerBatch={10}
                     />
                 </View>
+
+                <ModalEdicao
+                    visivel={modalVisivel}
+                    quantidadeInicial={itemParaEditar?.qnt_ml || 200}
+                    horarioInicial={itemParaEditar?.horario || ''}
+                    aoSalvar={salvarEdicao}
+                    aoCancelar={fecharEdicao}
+                />
             </SafeAreaView>
         </SafeAreaProvider>
     );
