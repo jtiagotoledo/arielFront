@@ -39,11 +39,8 @@ export function ConfigScreen() {
         try {
             await atualizarProfile(db, meta, hAcordar, hDormir);
             await agendarNotificacao(hAcordar, hDormir);
-            if (router.canGoBack()) {
-                router.back();
-            } else {
-                router.replace('/');
-            }
+            
+            router.replace('/');
         } catch (error) {
             console.error("Erro ao salvar configurações:", error);
         }
